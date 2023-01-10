@@ -71,9 +71,12 @@ def from_camt_zipfile(zipname: str) -> Iterator[Transaction]:
         os.unlink(xmlfile)
     os.rmdir(tempdir)
 
+def is_zipfile(arg: str) -> bool:
+    return arg.endswith('.zip') or arg.endswith('.ZIP')
+
 def from_any_files(args: List[str]) -> Iterator[Transaction]:
     for arg in args:
-        if arg.endswith('.zip') or arg.endswith('.ZIP'):
+        if is_zipfile(arg):
             yield from from_camt_zipfile(arg)
         else:
             raise ValueError("Don't know how to handle " + arg)
@@ -88,10 +91,21 @@ def to_csv(transactions: Iterator[Transaction], csvname: str) -> None:
             amount = f"{t.amount:n}"
             out.writerow([date, t.subject, amount, '', '', '', t.account])
 
-if __name__ == '__main__':
+def main():
     import sys
-    if len(sys.argv) < 3:
+    if len(sys.argv) == 2 and is_zipfile(sys.argv[1]):
+        zipfile = sys.argv[1]
+        inputs = [zipfile]
+        output = zipfile[:-4] + '.csv'
+    elif len(sys.argv) >= 3:
+        inputs = sys.argv[1:-1]
+        output = sys.argv[-1]
+    else:
         raise Exception(f"Usage: {sys.argv[0]} zipfile(s) outfile")
 
-    transactions = from_any_files(sys.argv[1:-1])
-    to_csv(transactions, sys.argv[-1])
+    transactions = from_any_files(inputs)
+    to_csv(transactions, output)
+
+if __name__ == '__main__':
+    main()
+
