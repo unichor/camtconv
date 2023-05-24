@@ -21,23 +21,20 @@ account_patterns = (
 )
 
 class Transaction:
-    def __init__(self, date, subject, amount) -> None:
+    def __init__(self, date, subject, name, iban, amount) -> None:
         self.date = date
         self.subject = subject
+        self.name = name
+        self.iban = iban
         self.amount = amount
         self.account = self._guess_account()
 
     @staticmethod
     def from_camt_transaction(camt) -> 'Transaction':
-        subject = []
-        if camt.name:
-            subject.append(camt.name)
-        if len(camt.purpose) > 0:
-            subject.append(camt.purpose[0])
-        subject = '\n'.join(subject)
+        subject = '\n'.join(camt.purpose)
         amount = camt.amount.value
         assert camt.amount.currency == 'EUR'
-        return Transaction(camt.date, subject, amount)
+        return Transaction(camt.date, subject, camt.name, camt.iban, amount)
 
     def _guess_account(self):
         for pattern, account in account_patterns:
@@ -83,13 +80,13 @@ def from_any_files(args: List[str]) -> Iterator[Transaction]:
 
 def to_csv(transactions: Iterator[Transaction], csvname: str) -> None:
     with open(csvname, 'w', newline='') as csvfile:
-        fieldnames = ['Datum', 'Betreff', 'Betrag', 'Buchungsnummer', 'Semester', 'Kategorie', 'Unterkonto']
+        fieldnames = ['Datum', 'Betreff', 'Name', 'IBAN', 'Betrag', 'Buchungsnummer', 'Semester', 'Kategorie', 'Unterkonto']
         out = csv.writer(csvfile, dialect=csv.unix_dialect)
         out.writerow(fieldnames)
         for t in transactions:
             date = t.date.strftime("%d.%m.%Y")
             amount = f"{t.amount:n}"
-            out.writerow([date, t.subject, amount, '', '', '', t.account])
+            out.writerow([date, t.subject, t.name, t.iban, amount, '', '', '', t.account])
 
 def main():
     import sys
