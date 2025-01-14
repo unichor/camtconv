@@ -15,7 +15,7 @@ fintech.register()
 from fintech.sepa import CAMTDocument
 
 account_patterns = (
-        (re.compile('\\b(PWE|Probenwochenende|Proben-WE|Ochsenhausen)\\b', re.I), 'Probenwochenende'),
+        (re.compile(r'\b(PWE\d*|Probenwochenende|Proben-WE|Ochsenhausen)\b', re.I), 'Probenwochenende'),
         (re.compile('PWE(\\d|\\b)'), 'Probenwochenende'),
         (re.compile('\\b(Chorreise|Reisebeitrag|Chorreisebeitrag)\\b', re.I), 'Chorreise'),
         (re.compile('\\b(vegetarisch)\\b', re.I), 'Probenwochenende'),
